@@ -7,7 +7,7 @@ import requests
 
 
 class TuyaApiError(RuntimeError):
-    pass
+    """Error devuelto por Tuya o por la comunicación HTTP."""
 
 
 class TuyaClient:
@@ -26,6 +26,7 @@ class TuyaClient:
 
         self.session = requests.Session()
         self.access_token: str | None = None
+        self.token_expires_at: float = 0
 
     @staticmethod
     def _timestamp_ms() -> str:
@@ -37,12 +38,13 @@ class TuyaClient:
             value.encode("utf-8")
         ).hexdigest()
 
-    def _create_token_signature(
+    def _sign(
         self,
         *,
         timestamp: str,
         method: str,
         request_path: str,
+        access_token: str = "",
         body: str = "",
     ) -> str:
         content_hash = self._sha256(body)
@@ -58,6 +60,7 @@ class TuyaClient:
 
         message = (
             self.client_id
+            + access_token
             + timestamp
             + string_to_sign
         )
@@ -68,12 +71,35 @@ class TuyaClient:
             hashlib.sha256,
         ).hexdigest().upper()
 
+    @staticmethod
+    def _parse_response(
+        response: requests.Response,
+    ) -> dict[str, Any]:
+        try:
+            payload = response.json()
+        except ValueError as error:
+            raise TuyaApiError(
+                "Tuya devolvió una respuesta no válida: "
+                f"HTTP {response.status_code}"
+            ) from error
+
+        if not response.ok:
+            raise TuyaApiError(
+                f"Error HTTP {response.status_code}: {payload}"
+            )
+
+        if not payload.get("success"):
+            raise TuyaApiError(
+                f"Tuya rechazó la solicitud: {payload}"
+            )
+
+        return payload
+
     def get_token(self) -> dict[str, Any]:
         timestamp = self._timestamp_ms()
-
         request_path = "/v1.0/token?grant_type=1"
 
-        signature = self._create_token_signature(
+        signature = self._sign(
             timestamp=timestamp,
             method="GET",
             request_path=request_path,
@@ -94,26 +120,11 @@ class TuyaClient:
             timeout=self.timeout_seconds,
         )
 
-        try:
-            payload = response.json()
-        except ValueError as error:
-            raise TuyaApiError(
-                f"Tuya devolvió una respuesta inválida: "
-                f"HTTP {response.status_code}"
-            ) from error
-
-        if not response.ok:
-            raise TuyaApiError(
-                f"Error HTTP {response.status_code}: {payload}"
-            )
-
-        if not payload.get("success"):
-            raise TuyaApiError(
-                f"Tuya rechazó la solicitud: {payload}"
-            )
+        payload = self._parse_response(response)
 
         result = payload.get("result", {})
         access_token = result.get("access_token")
+        expire_time = int(result.get("expire_time", 0))
 
         if not access_token:
             raise TuyaApiError(
@@ -121,5 +132,63 @@ class TuyaClient:
             )
 
         self.access_token = access_token
+        self.token_expires_at = time.time() + expire_time - 30
 
         return payload
+
+    def _ensure_token(self) -> None:
+        token_is_valid = (
+            self.access_token is not None
+            and time.time() < self.token_expires_at
+        )
+
+        if not token_is_valid:
+            self.get_token()
+
+    def get(
+        self,
+        request_path: str,
+    ) -> dict[str, Any]:
+        self._ensure_token()
+
+        timestamp = self._timestamp_ms()
+
+        signature = self._sign(
+            timestamp=timestamp,
+            method="GET",
+            request_path=request_path,
+            access_token=self.access_token or "",
+        )
+
+        headers = {
+            "client_id": self.client_id,
+            "access_token": self.access_token or "",
+            "sign": signature,
+            "sign_method": "HMAC-SHA256",
+            "t": timestamp,
+            "lang": "en",
+        }
+
+        response = self.session.get(
+            f"{self.base_url}{request_path}",
+            headers=headers,
+            timeout=self.timeout_seconds,
+        )
+
+        return self._parse_response(response)
+
+    def get_device_details(
+        self,
+        device_id: str,
+    ) -> dict[str, Any]:
+        return self.get(
+            f"/v1.0/devices/{device_id}"
+        )
+
+    def get_shadow_properties(
+        self,
+        device_id: str,
+    ) -> dict[str, Any]:
+        return self.get(
+            f"/v2.0/cloud/thing/{device_id}/shadow/properties"
+        )
