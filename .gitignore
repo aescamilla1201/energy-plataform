@@ -15,3 +15,5 @@ __pycache__/
 data/raw/
 
 data/normalized/
+
+config/devices.json

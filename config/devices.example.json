@@ -1,0 +1,11 @@
+{
+  "devices": [
+    {
+      "name": "JIH",
+      "device_id": "eb47caff2a29e9fe2aos9i",
+      "sensor_type": "dual_meter",
+      "site": "sitio_principal",
+      "enabled": true
+    }
+  ]
+}

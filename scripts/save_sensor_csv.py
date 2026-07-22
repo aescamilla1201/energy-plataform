@@ -2,7 +2,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from src.config import get_settings
-from src.normalize import extract_properties, normalize_dual_meter
+from src.normalizers.common import extract_properties
+from src.normalizers.registry import normalize_by_type
 from src.storage import append_csv_reading, flatten_sensor_reading
 from src.tuya_client import TuyaApiError, TuyaClient
 
@@ -28,7 +29,10 @@ def main() -> None:
         raise SystemExit(1) from error
 
     properties = extract_properties(raw_response)
-    measurements = normalize_dual_meter(properties)
+    measurements = normalize_by_type(
+        "dual_meter",
+        properties,
+    )
 
     timestamp = datetime.now(
         LOCAL_TIMEZONE
