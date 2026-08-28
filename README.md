@@ -10,3 +10,41 @@ Consultar sensores eléctricos conectados a Tuya Cloud
 - Identificar los Data Points eléctricos.
 - Normalizar las mediciones.
 
+Flujo de monitor_sensor.py
+                    ┌──────────────────┐
+                    │ Cargar settings  │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Cargar sensores  │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Filtrar enabled  │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Conectar a Tuya  │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Consultar sensor │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Extraer datos    │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Normalizar datos │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Guardar en CSV   │
+                    └────────┬─────────┘
+                             ↓
+                    ┌──────────────────┐
+                    │ Esperar 10 min   │
+                    └────────┬─────────┘
+                             │
+                             └──────→ repetir
