@@ -19,3 +19,5 @@ data/normalized/
 config/devices.json
 
 build/
+
+txt/
