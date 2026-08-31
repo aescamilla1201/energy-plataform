@@ -1,0 +1,10 @@
+{
+  "viviendas": {
+    "Vivienda1 - Doctor": {
+      "archivo_salida": "Medidor1.csv",
+      "sensores": [
+        "V1Extra"
+      ]
+      }
+    }
+}

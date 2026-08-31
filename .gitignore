@@ -17,6 +17,7 @@ data/raw/
 data/normalized/
 
 config/devices.json
+config/viviendas.json
 
 build/
 
