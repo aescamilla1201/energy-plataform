@@ -12,7 +12,7 @@ __pycache__/
 *.log
 .DS_Store
 
-data/raw/
+data/
 
 data/normalized/
 

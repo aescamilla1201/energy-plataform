@@ -12,7 +12,6 @@ class DeviceConfig:
     name: str
     device_id: str
     sensor_type: str
-    site: str
     enabled: bool = True
 
 
@@ -45,6 +44,7 @@ def load_devices(
     devices: list[DeviceConfig] = []
 
     for index, item in enumerate(raw_devices):
+
         if not isinstance(item, dict):
             raise DeviceConfigurationError(
                 f"El dispositivo en posición {index} no es válido."
@@ -54,7 +54,6 @@ def load_devices(
             "name",
             "device_id",
             "sensor_type",
-            "site",
         ]
 
         missing_fields = [
@@ -74,7 +73,6 @@ def load_devices(
                 name=str(item["name"]),
                 device_id=str(item["device_id"]),
                 sensor_type=str(item["sensor_type"]),
-                site=str(item["site"]),
                 enabled=bool(item.get("enabled", True)),
             )
         )

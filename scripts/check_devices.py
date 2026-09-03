@@ -4,14 +4,12 @@ from src.devices import (
 )
 
 
-def mask_device_id(
-    device_id: str,
-    visible: int = 4,
-) -> str:
-    if len(device_id) <= visible:
-        return "*" * len(device_id)
+def mask_device_id(device_id: str) -> str:
+    """Oculta parte del ID del dispositivo para mostrarlo de forma segura."""
+    if len(device_id) <= 8:
+        return device_id
 
-    return f"{device_id[:visible]}********"
+    return f"{device_id[:4]}...{device_id[-4:]}"
 
 
 def main() -> None:
@@ -35,10 +33,9 @@ def main() -> None:
         status = "habilitado" if device.enabled else "deshabilitado"
 
         print(
-            f"- {device.name} | "
+            f"{device.name} | "
             f"{mask_device_id(device.device_id)} | "
             f"{device.sensor_type} | "
-            f"{device.site} | "
             f"{status}"
         )
 

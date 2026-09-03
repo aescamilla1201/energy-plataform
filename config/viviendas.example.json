@@ -1,10 +1,17 @@
 {
   "viviendas": {
-    "Vivienda1 - Doctor": {
-      "archivo_salida": "Medidor1.csv",
+    "Vivienda JoseIgnacio": {
+      "codigo": "Vivienda-001",
+      "enabled": true,
+      "ubicacion": {
+        "latitud": 25.618804,
+        "longitud": -100.295084
+      },
       "sensores": [
-        "V1Extra"
+        {
+          "codigo": "EM-001"
+        }
       ]
-      }
     }
+  }
 }

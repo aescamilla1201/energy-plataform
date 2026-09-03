@@ -47,7 +47,6 @@ def collect_device_reading(
     )
 
     reading["device_name"] = device.name
-    reading["site"] = device.site
     reading["sensor_type"] = device.sensor_type
 
     return reading
